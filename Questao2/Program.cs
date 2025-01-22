@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-public class Program
+﻿public class Program
 {
     public static void Main()
     {
@@ -23,7 +21,6 @@ public class Program
 
     public static int getTotalScoredGoals(string team, int year)
     {
-        
         return 0;
     }
 
