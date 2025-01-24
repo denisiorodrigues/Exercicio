@@ -1,16 +1,20 @@
-﻿public class Program
+﻿using Questao2.Services;
+
+namespace Questao2;
+
+public class Program
 {
-    public static void Main()
+    public static async Task Main()
     {
         string teamName = "Paris Saint-Germain";
         int year = 2013;
-        int totalGoals = getTotalScoredGoals(teamName, year);
+        int totalGoals = await getTotalScoredGoals(teamName, year);
 
         Console.WriteLine("Team "+ teamName +" scored "+ totalGoals.ToString() + " goals in "+ year);
 
         teamName = "Chelsea";
         year = 2014;
-        totalGoals = getTotalScoredGoals(teamName, year);
+        totalGoals = await getTotalScoredGoals(teamName, year);
 
         Console.WriteLine("Team " + teamName + " scored " + totalGoals.ToString() + " goals in " + year);
 
@@ -19,9 +23,10 @@
         // Team Chelsea scored 92 goals in 2014
     }
 
-    public static int getTotalScoredGoals(string team, int year)
+    public static async Task<int> getTotalScoredGoals(string team, int year)
     {
-        return 0;
+        var service = new FootballMatcheService();
+        return await service.getTotalScoredGoals(team, year);
     }
 
 }
