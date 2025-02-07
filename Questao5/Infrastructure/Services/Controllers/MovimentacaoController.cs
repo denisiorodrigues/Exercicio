@@ -1,0 +1,36 @@
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Questao5.Application.Commands;
+using Questao5.Application.Exceptions;
+using Questao5.Domain.Helpers;
+
+namespace Questao5.Infrastructure.Services.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class MovimentacaoController : ControllerBase
+    {
+        private readonly IMediator _mediator;
+
+        public MovimentacaoController(IMediator mediator)
+        {
+            _mediator = mediator;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(CriarMovimentacaoCommand criarMovimentacaoCommand)
+        {
+            if (criarMovimentacaoCommand.Valor <= 0)
+                throw new InvalidValueException();
+
+            var tipoMovimentacao = criarMovimentacaoCommand.TipoMovimento.ToUpper()[0];
+
+            if (tipoMovimentacao != TipoMovimento.Debito && tipoMovimentacao != TipoMovimento.Credito)
+                throw new InvalidTypeException();
+
+            var result = await _mediator.Send(criarMovimentacaoCommand);
+
+            return Ok(result);
+        }
+    }
+}
