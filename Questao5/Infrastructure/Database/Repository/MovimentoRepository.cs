@@ -2,7 +2,6 @@
 using Questao5.Domain.Abstraction;
 using Questao5.Domain.Entities;
 using System.Data;
-using System.Transactions;
 
 namespace Questao5.Infrastructure.Database.Repository;
 
@@ -15,12 +14,6 @@ public class MovimentoRepository : IMovimentoRepository
         _dbConnection = dbConnection;
     }
     
-    /*
-     idmovimento TEXT(37) PRIMARY KEY, -- identificacao unica do movimento
-	    idcontacorrente INTEGER(10) NOT NULL, -- identificacao unica da conta corrente
-	    datamovimento TEXT(25) NOT NULL, -- data do movimento no formato DD/MM/YYYY
-	    tipomovimento TEXT(1) NOT NULL, -- tipo do movimento. (C = Credito, D = Debito).
-	    valor REAL NOT NULL*/
     public async Task AddAsync(Movimento movimento)
     {
         var query = @"INSERT INTO movimento (idmovimento, idcontacorrente, datamovimento, tipomovimento, valor) 
@@ -34,5 +27,16 @@ public class MovimentoRepository : IMovimentoRepository
             Tipo = movimento.Tipo,
             Valor = movimento.Valor
         });
+    }
+
+    public async Task<decimal> ObterSaldoAsync(string contaCorrenteId)
+    {
+        var query = @"
+                SELECT 
+                    SUM(CASE WHEN tipomovimento = 'C' THEN valor ELSE 0 END) - SUM(CASE WHEN tipomovimento = 'D' THEN valor ELSE 0 END) as SaldoTotal
+                FROM movimento
+                WHERE idcontacorrente = @ContaCorrenteId";
+
+        return await _dbConnection.QueryFirstOrDefaultAsync<decimal>(query, new { ContaCorrenteId = contaCorrenteId });
     }
 }
