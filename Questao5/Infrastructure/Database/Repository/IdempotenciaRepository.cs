@@ -16,14 +16,15 @@ public class IdempotenciaRepository : IIdempotenciaRepository
 
     public async Task AtualizarAsync(Idempotencia idempotencia)
     {
-        var query = @"UPDATE idempotencia SET (requisicao = @Requisicao, resultado = @Resultado) 
+        var query = @"UPDATE idempotencia SET requisicao = @Requisicao, 
+                             resultado = @Resultado
                       WHERE chave_idempotencia = @Chave";
 
         await _dbConnection.ExecuteAsync(query, new
         {
-            Chave = idempotencia.Chave,
             Requisicao = idempotencia.Requisicao,
-            Resultado = idempotencia.Resultado
+            Resultado = idempotencia.Resultado,
+            Chave = idempotencia.Chave
         });
     }
 

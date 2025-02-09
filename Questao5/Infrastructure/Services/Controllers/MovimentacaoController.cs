@@ -37,5 +37,12 @@ namespace Questao5.Infrastructure.Services.Controllers
 
             return Ok(result);
         }
+
+
+        [HttpGet("teste")]
+        public IActionResult Teste()
+        {
+            return Ok(new {Status = true, Message = "testado com sucesso."});
+        }
     }
 }

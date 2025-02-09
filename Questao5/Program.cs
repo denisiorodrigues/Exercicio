@@ -46,6 +46,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<IdempotencyMiddleware>();
+app.UseMiddleware<ResponseCaptureMiddleware>();
 
 app.UseHttpsRedirection();
 

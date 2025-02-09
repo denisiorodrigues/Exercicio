@@ -17,69 +17,44 @@ public class IdempotencyMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        using (var scope = _serviceScopeFactory.CreateScope())
+        var originalBodyStream = context.Response.Body;
+        var requestBody = await new StreamReader(context.Request.Body).ReadToEndAsync();
+        try
         {
-            var idempotenciaRepository = scope.ServiceProvider.GetRequiredService<IIdempotenciaRepository>();
-            if (context.Request.Headers.TryGetValue("idempotency-Key", out var idempotencyKey))
+            using (var memoryStream = new MemoryStream())
+            using (var scope = _serviceScopeFactory.CreateScope())
             {
-                string chaveIdempotencia = idempotencyKey.ToString();
-                var existingRequest = await idempotenciaRepository.ObterPorChaveAsync(chaveIdempotencia);
-                if (existingRequest != null)
+                var idempotenciaRepository = scope.ServiceProvider.GetRequiredService<IIdempotenciaRepository>();
+                if (context.Request.Headers.TryGetValue("idempotency-Key", out var idempotencyKey))
                 {
-                    context.Response.StatusCode = StatusCodes.Status409Conflict;
-                    await context.Response.WriteAsync(existingRequest.Resultado);
-                    return;
-                }
-
-                var requestBody = await new StreamReader(context.Request.Body).ReadToEndAsync();
-                var idempotencia = new Idempotencia(chaveIdempotencia, requestBody);
-
-                await idempotenciaRepository.CadastrarAsync(idempotencia);
-
-                context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(requestBody));
-            }
-
-            await _next(context);
-
-            //if (context.Request.Headers.TryGetValue("Idempotency-Key", out idempotencyKey))
-            //{
-            //    var idempotencia = await idempotenciaRepository.ObterPorChaveAsync(idempotencyKey.ToString());
-            //    if (idempotencia != null)
-            //    {
-            //        idempotencia.Resultado = context.Response.ToString();
-            //        await idempotenciaRepository.AtualizarAsync(idempotencia);
-            //    }
-            //}
-
-            var originalBodyStream = context.Response.Body;
-            using (var responseBody = new MemoryStream())
-            {
-                try
-                {
-                    //context.Response.Body = responseBody;
-
-                    //context.Response.Body.Seek(0, SeekOrigin.Begin);
-                    var responseText = await new StreamReader(context.Response.Body).ReadToEndAsync();
-                    //context.Response.Body.Seek(0, SeekOrigin.Begin);
-
-                    if (context.Request.Headers.TryGetValue("Idempotency-Key", out idempotencyKey))
+                    string chaveIdempotencia = idempotencyKey.ToString();
+                    var existingRequest = await idempotenciaRepository.ObterPorChaveAsync(chaveIdempotencia);
+                    if (existingRequest != null)
                     {
-                        var idempotencia = await idempotenciaRepository.ObterPorChaveAsync(idempotencyKey.ToString());
-                        if (idempotencia != null)
-                        {
-                            idempotencia.Resultado = string.IsNullOrWhiteSpace(responseText) ? "response não capturado" : responseText;
-                            await idempotenciaRepository.AtualizarAsync(idempotencia);
-                        }
+                        context.Response.StatusCode = StatusCodes.Status409Conflict;
+                        await context.Response.WriteAsync(existingRequest.Resultado);
+                        return;
                     }
 
-                    //await responseBody.CopyToAsync(originalBodyStream);
+                    var idempotencia = new Idempotencia(chaveIdempotencia, requestBody);
+
+                    await idempotenciaRepository.CadastrarAsync(idempotencia);
+
+                    context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(requestBody));
                 }
-                catch (Exception ex)
-                {
-                    throw;
-                }
-                
+
+                //Next pipeline
+                await _next(context);
             }
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine($"Error MESSAGE >> : {ex.Message}"); // Aqui você pode armazenar/logar o conteúdo
+        }
+        finally
+        {
+            // Restaura o stream original
+            context.Response.Body = originalBodyStream;
         }
     }
 }
