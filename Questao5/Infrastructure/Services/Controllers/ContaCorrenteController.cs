@@ -16,14 +16,14 @@ public class ContaCorrenteController : ControllerBase
         _mediator = mediator;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> Accounts()
-    {
-        var accounts = await _mediator.Send(new GetAccountQuery());
-        return Ok(accounts);
-    }
+    //[HttpGet]
+    //public async Task<IActionResult> Accounts()
+    //{
+    //    var accounts = await _mediator.Send(new GetAccountQuery());
+    //    return Ok(accounts);
+    //}
 
-    [HttpPost("saldo")]
+    [HttpPost("saldo")] 
     public async Task<IActionResult> ObterSaldo(SaldoContaCorrenteQuery query)
     {
         SaldoContaCorrenteResponse saldo = await _mediator.Send(query);

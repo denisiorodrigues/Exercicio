@@ -18,8 +18,13 @@ namespace Questao5.Infrastructure.Services.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CriarMovimentacaoCommand criarMovimentacaoCommand)
+        public async Task<IActionResult> Create([FromBody] CriarMovimentacaoCommand criarMovimentacaoCommand, [FromHeader(Name = "idempotency-Key")] string idempotencyKey)
         {
+            if (string.IsNullOrEmpty(idempotencyKey))
+            {
+                return BadRequest("Idempotency-Key header is required.");
+            }
+
             if (criarMovimentacaoCommand.Valor <= 0)
                 throw new InvalidValueException();
 

@@ -5,6 +5,7 @@ using Questao5.Filters;
 using Questao5.Infrastructure.Database.QueryStore;
 using Questao5.Infrastructure.Database.Repository;
 using Questao5.Infrastructure.Sqlite;
+using Questao5.Middleware;
 using System.Data;
 using System.Reflection;
 
@@ -24,6 +25,7 @@ builder.Services.AddSingleton<IDatabaseBootstrap, DatabaseBootstrap>();
 builder.Services.AddScoped<ICurrentAccountQueryStore, CurrentAccountQueryStore>();
 builder.Services.AddScoped<IMovimentoRepository, MovimentoRepository>();
 builder.Services.AddScoped<IContaCorrenteRepository, ContaCorrenteRepository>();
+builder.Services.AddScoped<IIdempotenciaRepository, IdempotenciaRepository>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -42,6 +44,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<IdempotencyMiddleware>();
 
 app.UseHttpsRedirection();
 
